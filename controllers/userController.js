@@ -1,56 +1,112 @@
-const User = require('../models/userModel');
+// controllers/userController.js
+const db = require('../db/db');
+const { validationResult } = require('express-validator');
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
-exports.handleUserRegistration = (req, res) => {
-    const { name, email, password, role } = req.body;
 
-    User.createUser({ name, email, password_hash: password, role: role || 'customer' }, (err, result) => {
-        if (err) {
-            if (err.code === 'ER_DUP_ENTRY') {
-                return res.status(400).json({ message: 'Email already exists.' });
-            }
-            return res.status(500).json({ message: 'Database error.', error: err.message });
-        }
-        res.status(201).json({ message: 'User registered successfully.' });
-    });
+exports.getProfile = async (req, res) => {
+  try {
+    const [rows] = await db.execute(
+      'SELECT id, name, email, role, created_at FROM users WHERE id = ?',
+      [req.user.id]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(rows[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
 };
 
-exports.handleUserLogin = (req, res) => {
-    const { email, password } = req.body;
 
-    User.findUserByEmail(email, (err, results) => {
-        if (err) return res.status(500).json({ message: 'Database error.' });
+exports.updateProfile = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
 
-        if (results.length === 0) {
-            return res.status(404).json({ message: 'User not found.' });
-        }
+  const { name, email, password } = req.body;
 
-        const user = results[0];
+  try {
+    if (email) {
+      const [existing] = await db.execute(
+        'SELECT * FROM users WHERE email = ? AND id != ?',
+        [email, req.user.id]
+      );
+      if (existing.length > 0) {
+        return res.status(400).json({ message: 'Email already in use' });
+      }
+    }
 
-        if (password !== user.password_hash) {
-            return res.status(401).json({ message: 'Invalid credentials.' });
-        }
+    let password_hash;
+    if (password) {
+      password_hash = await bcrypt.hash(password, saltRounds);
+    }
 
-        res.json({ message: 'Login successful.' });
-    });
+    const query = [];
+    const params = [];
+
+    if (name) {
+      query.push('name = ?');
+      params.push(name);
+    }
+    if (email) {
+      query.push('email = ?');
+      params.push(email);
+    }
+    if (password_hash) {
+      query.push('password_hash = ?');
+      params.push(password_hash);
+    }
+
+    if (query.length === 0) {
+      return res.status(400).json({ message: 'No data to update' });
+    }
+
+    params.push(req.user.id);
+
+    await db.execute(`UPDATE users SET ${query.join(', ')} WHERE id = ?`, params);
+
+    res.json({ message: 'Profile updated successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
 };
-//  User Profile
-exports.getUserProfile = (req, res) => {
-    const { email } = req.query; 
-    User.findUserByEmail(email, (err, results) => {
-        if (err) return res.status(500).json({ message: 'Database error.' });
 
-        if (results.length === 0) {
-            return res.status(404).json({ message: 'User not found.' });
-        }
 
-        const user = results[0];
-        res.json({
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            created_at: user.created_at,
-            updated_at: user.updated_at
-        });
+exports.getUserDashboard = async (req, res) => {
+  const userId = req.user.id;
+
+  try {
+    const [orders] = await db.execute(
+      `SELECT o.id, o.status, o.total_amount, o.created_at 
+       FROM orders o 
+       WHERE o.user_id = ? 
+       ORDER BY o.created_at DESC`,
+      [userId]
+    );
+
+    const [wishlist] = await db.execute(
+      `SELECT p.id, p.name, p.price, p.image_url 
+       FROM wishlist w 
+       JOIN products p ON w.product_id = p.id 
+       WHERE w.user_id = ?`,
+      [userId]
+    );
+
+    res.status(200).json({
+      message: "Dashboard fetched successfully",
+      data: {
+        orders,
+        wishlist
+      }
     });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
 };
