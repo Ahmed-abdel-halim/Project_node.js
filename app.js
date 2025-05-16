@@ -1,29 +1,27 @@
-const express = require("express");
-require("dotenv").config();
+const express = require('express');
 const app = express();
-const db = require("./db/db");
+const userRoutes = require('./routes/adminUser.routes');
+const productRoutes = require('./routes/adminProduct.routes');
 
 app.use(express.json());
-const productRoutes = require('./routes/product');
 
-const cartRoutes = require("./routes/cart");
-const wishlistRoutes = require("./routes/wishlist");
-// ================== task 1 =====================
+// مثال على middleware مصادقة تجريبي (لا تستخدمه في الإنتاج)
+app.use((req, res, next) => {
+  req.user = { id: 1, role: 'admin' }; // مثال فقط، استبدله بـ JWT auth
+  next();
+});
 
-const authRoutes = require('./routes/auth');
-const userRoutes = require('./routes/user');
+// Routes
+app.use('/admin/users', userRoutes);
+app.use('/admin/products', productRoutes);
 
-app.use('/api/auth', authRoutes);
-app.use('/api/user', userRoutes);
-// ================== task 2 =====================
-app.use('/api', productRoutes);
+// تشغيل السيرفر
+app.listen(3000, () => {
+  console.log('Server running on http://localhost:3000');
+});
+const cors = require('cors');
+app.use(cors());
 
-// =================task 3=========================
-
-app.use("/cart", cartRoutes);
-app.use("/wishlist", wishlistRoutes);
-
-const PORT = 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.get('/', (req, res) => {
+  res.send('API is running ✅');
 });
