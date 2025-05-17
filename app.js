@@ -30,6 +30,10 @@ app.use("/wishlist", wishlistRoutes);
 
 const orderRoutes = require('./routes/orderRoutes');
 app.use('/orders', orderRoutes);
+// ================== task 6 user =====================
+
+const reviewRoutes = require('./routes/reviewRoutes');
+app.use('/api', reviewRoutes);
 
 
 // ================== task 3 admin =====================
