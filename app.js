@@ -26,6 +26,10 @@ const wishlistRoutes = require("./routes/wishlist");
 app.use("/cart", cartRoutes);
 app.use("/wishlist", wishlistRoutes);
 
+// ================== task 5 user =====================
+
+const orderRoutes = require('./routes/orderRoutes');
+app.use('/orders', orderRoutes);
 
 
 // ================== task 3 admin =====================

@@ -15,7 +15,6 @@ exports.register = async (req, res) => {
   const { name, email, password } = req.body;
 
   try {
-    // تحقق إذا كان البريد مستخدم بالفعل
     const [existingUser] = await db.execute(
       "SELECT * FROM users WHERE email = ?",
       [email]
@@ -24,10 +23,8 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    // تشفير كلمة المرور
     const password_hash = await bcrypt.hash(password, saltRounds);
 
-    // إدخال المستخدم الجديد
     await db.execute(
       "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)",
       [name, email, password_hash]
