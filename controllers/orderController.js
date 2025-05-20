@@ -18,7 +18,7 @@ exports.placeOrder = async (req, res) => {
       if (productRows.length === 0) {
         return res
           .status(404)
-          .json({ message: `المنتج ${item.product_id} غير موجود.` });
+          .json({ message: `product ${item.product_id}  not found` });
       }
       const productPrice = productRows[0].price;
       totalPrice += productPrice * item.quantity;
@@ -26,7 +26,7 @@ exports.placeOrder = async (req, res) => {
     }
 
     const [orderResult] = await db.query(
-      "INSERT INTO orders (user_id, address_id, total_price, payment_method) VALUES (?, ?, ?, ?)",
+      "INSERT INTO orders (user_id, address_id, total_amount, payment_method) VALUES (?, ?, ?, ?)",
       [user_id, address_id, totalPrice, payment_method || "cash"]
     );
 
@@ -40,12 +40,14 @@ exports.placeOrder = async (req, res) => {
     }
 
     res.status(201).json({
-      message: "تم إنشاء الطلب بنجاح.",
+      message: "The request was created successfully.",
       order_id: orderId,
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "حدث خطأ أثناء إنشاء الطلب." });
+    res
+      .status(500)
+      .json({ message: "An error occurred while creating the request." });
   }
 };
 
@@ -55,7 +57,7 @@ exports.getOrderHistory = async (req, res) => {
   try {
     const [orders] = await db.query(
       `
-      SELECT o.id, o.status, o.total_price, o.payment_method, o.created_at,
+      SELECT o.id, o.status, o.total_amount, o.payment_method, o.created_at,
              oi.product_id, oi.quantity, oi.price_at_purchase,
              p.name AS product_name, p.image_url
       FROM orders o
@@ -74,7 +76,7 @@ exports.getOrderHistory = async (req, res) => {
         orderMap.set(row.id, {
           id: row.id,
           status: row.status,
-          total_price: row.total_price,
+          total_amount: row.total_amount,
           payment_method: row.payment_method,
           created_at: row.created_at,
           items: [],
@@ -95,6 +97,8 @@ exports.getOrderHistory = async (req, res) => {
     res.json(Array.from(orderMap.values()));
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "حدث خطأ أثناء جلب سجل الطلبات." });
+    res
+      .status(500)
+      .json({ message: "An error occurred while fetching the order history." });
   }
 };
