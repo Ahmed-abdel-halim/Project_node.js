@@ -7,7 +7,6 @@ require("dotenv").config();
 const saltRounds = 10;
 
 exports.register = async (req, res) => {
-  // التحقق من صحة المدخلات
   const errors = validationResult(req);
   if (!errors.isEmpty())
     return res.status(400).json({ errors: errors.array() });
@@ -84,7 +83,6 @@ exports.getUserDashboard = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // هات البيانات الخاصة بالأوردرات و الـ Wishlist:
     const [orders] = await db.query("SELECT * FROM orders WHERE user_id = ?", [
       userId,
     ]);
@@ -96,7 +94,6 @@ exports.getUserDashboard = async (req, res) => {
       [userId]
     );
 
-    // ارجع بالبيانات في الـ JSON:
     res.json({
       message: "User Dashboard Data",
       orders,
