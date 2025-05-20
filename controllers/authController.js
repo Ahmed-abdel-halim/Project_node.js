@@ -85,7 +85,9 @@ exports.getUserDashboard = async (req, res) => {
     const userId = req.user.id;
 
     // هات البيانات الخاصة بالأوردرات و الـ Wishlist:
-    const [orders] = await db.query('SELECT * FROM orders WHERE user_id = ?', [userId]);
+    const [orders] = await db.query("SELECT * FROM orders WHERE user_id = ?", [
+      userId,
+    ]);
     const [wishlist] = await db.query(
       `SELECT p.id, p.name, p.price, p.image_url 
        FROM wishlist w 
@@ -102,6 +104,6 @@ exports.getUserDashboard = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: "Server Error" });
   }
 };

@@ -1,19 +1,24 @@
-const db = require('../db/db');
+const db = require("../db/db");
 
 exports.placeOrder = async (req, res) => {
   const { user_id, address_id, items, payment_method } = req.body;
 
   if (!user_id || !address_id || !items || items.length === 0) {
-    return res.status(400).json({ message: 'جميع الحقول مطلوبة.' });
+    return res.status(400).json({ message: "جميع الحقول مطلوبة." });
   }
 
   try {
     let totalPrice = 0;
 
     for (let item of items) {
-      const [productRows] = await db.query('SELECT price FROM products WHERE id = ?', [item.product_id]);
+      const [productRows] = await db.query(
+        "SELECT price FROM products WHERE id = ?",
+        [item.product_id]
+      );
       if (productRows.length === 0) {
-        return res.status(404).json({ message: `المنتج ${item.product_id} غير موجود.` });
+        return res
+          .status(404)
+          .json({ message: `المنتج ${item.product_id} غير موجود.` });
       }
       const productPrice = productRows[0].price;
       totalPrice += productPrice * item.quantity;
@@ -21,26 +26,26 @@ exports.placeOrder = async (req, res) => {
     }
 
     const [orderResult] = await db.query(
-      'INSERT INTO orders (user_id, address_id, total_price, payment_method) VALUES (?, ?, ?, ?)',
-      [user_id, address_id, totalPrice, payment_method || 'cash']
+      "INSERT INTO orders (user_id, address_id, total_price, payment_method) VALUES (?, ?, ?, ?)",
+      [user_id, address_id, totalPrice, payment_method || "cash"]
     );
 
     const orderId = orderResult.insertId;
 
     for (let item of items) {
       await db.query(
-        'INSERT INTO order_items (order_id, product_id, quantity, price_at_purchase) VALUES (?, ?, ?, ?)',
+        "INSERT INTO order_items (order_id, product_id, quantity, price_at_purchase) VALUES (?, ?, ?, ?)",
         [orderId, item.product_id, item.quantity, item.price]
       );
     }
 
     res.status(201).json({
-      message: 'تم إنشاء الطلب بنجاح.',
-      order_id: orderId
+      message: "تم إنشاء الطلب بنجاح.",
+      order_id: orderId,
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'حدث خطأ أثناء إنشاء الطلب.' });
+    res.status(500).json({ message: "حدث خطأ أثناء إنشاء الطلب." });
   }
 };
 
@@ -48,7 +53,8 @@ exports.getOrderHistory = async (req, res) => {
   const userId = req.user?.id || req.params.user_id;
 
   try {
-    const [orders] = await db.query(`
+    const [orders] = await db.query(
+      `
       SELECT o.id, o.status, o.total_price, o.payment_method, o.created_at,
              oi.product_id, oi.quantity, oi.price_at_purchase,
              p.name AS product_name, p.image_url
@@ -57,7 +63,9 @@ exports.getOrderHistory = async (req, res) => {
       LEFT JOIN products p ON oi.product_id = p.id
       WHERE o.user_id = ?
       ORDER BY o.created_at DESC
-    `, [userId]);
+    `,
+      [userId]
+    );
 
     const orderMap = new Map();
 
@@ -87,6 +95,6 @@ exports.getOrderHistory = async (req, res) => {
     res.json(Array.from(orderMap.values()));
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'حدث خطأ أثناء جلب سجل الطلبات.' });
+    res.status(500).json({ message: "حدث خطأ أثناء جلب سجل الطلبات." });
   }
 };

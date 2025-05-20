@@ -37,13 +37,12 @@ exports.searchWishlist = (req, res) => {
   const userId = req.params.userId;
   const { keyword, minPrice, maxPrice } = req.query;
 
-const sql = `
+  const sql = `
   SELECT w.*, p.name, p.price, p.image_url 
   FROM wishlist w 
   JOIN products p ON w.product_id = p.id 
   WHERE w.user_id = ?
 `;
-
 
   const params = [userId];
 
@@ -67,4 +66,3 @@ const sql = `
     res.json(result);
   });
 };
-

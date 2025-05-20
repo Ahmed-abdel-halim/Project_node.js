@@ -1,26 +1,24 @@
 // controllers/userController.js
-const db = require('../db/db');
-const { validationResult } = require('express-validator');
-const bcrypt = require('bcrypt');
+const db = require("../db/db");
+const { validationResult } = require("express-validator");
+const bcrypt = require("bcrypt");
 const saltRounds = 10;
-
 
 exports.getProfile = async (req, res) => {
   try {
     const [rows] = await db.execute(
-      'SELECT id, name, email, role, created_at FROM users WHERE id = ?',
+      "SELECT id, name, email, role, created_at FROM users WHERE id = ?",
       [req.user.id]
     );
     if (rows.length === 0) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
     res.json(rows[0]);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 };
-
 
 exports.updateProfile = async (req, res) => {
   const errors = validationResult(req);
@@ -33,11 +31,11 @@ exports.updateProfile = async (req, res) => {
   try {
     if (email) {
       const [existing] = await db.execute(
-        'SELECT * FROM users WHERE email = ? AND id != ?',
+        "SELECT * FROM users WHERE email = ? AND id != ?",
         [email, req.user.id]
       );
       if (existing.length > 0) {
-        return res.status(400).json({ message: 'Email already in use' });
+        return res.status(400).json({ message: "Email already in use" });
       }
     }
 
@@ -50,33 +48,35 @@ exports.updateProfile = async (req, res) => {
     const params = [];
 
     if (name) {
-      query.push('name = ?');
+      query.push("name = ?");
       params.push(name);
     }
     if (email) {
-      query.push('email = ?');
+      query.push("email = ?");
       params.push(email);
     }
     if (password_hash) {
-      query.push('password_hash = ?');
+      query.push("password_hash = ?");
       params.push(password_hash);
     }
 
     if (query.length === 0) {
-      return res.status(400).json({ message: 'No data to update' });
+      return res.status(400).json({ message: "No data to update" });
     }
 
     params.push(req.user.id);
 
-    await db.execute(`UPDATE users SET ${query.join(', ')} WHERE id = ?`, params);
+    await db.execute(
+      `UPDATE users SET ${query.join(", ")} WHERE id = ?`,
+      params
+    );
 
-    res.json({ message: 'Profile updated successfully' });
+    res.json({ message: "Profile updated successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 };
-
 
 exports.getUserDashboard = async (req, res) => {
   const userId = req.user.id;
@@ -102,11 +102,11 @@ exports.getUserDashboard = async (req, res) => {
       message: "Dashboard fetched successfully",
       data: {
         orders,
-        wishlist
-      }
+        wishlist,
+      },
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server Error' });
+    res.status(500).json({ message: "Server Error" });
   }
 };
