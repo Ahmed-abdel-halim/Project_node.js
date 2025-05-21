@@ -83,7 +83,7 @@ const productadminroute = require("./routes/adminProduct.routes");
 app.use("/admin/products", productadminroute);
 // ========================= 6 admin =============================
 
-const orderRoute = require('./routes/orderRoutes');
+const orderRoute = require('./routes/ordermange');
 app.use('/api/admin/orders', orderRoute);
 
 // ================== run Server =========================
