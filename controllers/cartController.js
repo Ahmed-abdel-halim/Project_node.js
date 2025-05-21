@@ -1,4 +1,4 @@
-const db = require("../db/db");
+const db = require("../db/dbpayment");
 
 // Add item to cart
 exports.addToCart = (req, res) => {

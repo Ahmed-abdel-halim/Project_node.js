@@ -1,13 +1,15 @@
 const express = require("express");
 require("dotenv").config();
 const app = express();
-const db = require("./db/db");
+
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use((req, res, next) => {
   req.user = { id: 1, role: "admin" };
   next();
 });
+
 // ================== task 1 user =====================
 
 const authRoutes = require("./routes/auth");
@@ -42,6 +44,35 @@ app.use("/orders", orderRoutes);
 
 const reviewRoutes = require("./routes/reviewRoutes");
 app.use("/api", reviewRoutes);
+// ===================task 1 2 7 admin ========
+const authRouters = require('./routes/authRouters');
+const useradminRoutes = require('./routes/userRoutes');
+const managerRoutes = require('./routes/managerRoutes');
+const adminController =require("./routes/adminRoutes");
+const contactController = require("./routes/contactRotes")
+
+
+// check roles
+// auth
+app.use("/website/auth",authRouters);
+// user
+app.use("/website/role",useradminRoutes);
+// mamnger
+app.use("/website/manage", managerRoutes);
+// admin route
+app.use("/website/edit", adminController);
+// contact route
+app.use("/website/contact", contactController);
+
+
+
+
+// check server
+app.use((err, req, res, next) => {
+	console.error('Error:', err.message);
+	res.status(500).send(('Something Broken'));
+});
+
 
 // ================== task 3 admin =====================
 const adminuserRoutes = require("./routes/adminUser.routes");
@@ -50,17 +81,21 @@ app.use("/admin/users", adminuserRoutes);
 // ================== task 4 admin =====================
 const productadminroute = require("./routes/adminProduct.routes");
 app.use("/admin/products", productadminroute);
+// ========================= 6 admin =============================
+
+const orderRoute = require('./routes/orderRoutes');
+app.use('/api/admin/orders', orderRoute);
 
 // ================== run Server =========================
+app.get('/', (req, res) => {
+  res.send('API is running ');
+});
 
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-const cors = require("cors");
-app.use(cors());
 
-app.get('/', (req, res) => {
-  res.send('API is running ');
-});
+
+

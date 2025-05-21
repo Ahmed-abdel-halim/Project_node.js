@@ -1,4 +1,4 @@
-const db = require("../db/db");
+const db = require("../db/dbpayment");
 
 exports.createShippingOption = (req, res) => {
   const { name, description, price, estimated_days } = req.body;
