@@ -3,11 +3,55 @@ const { validationResult } = require("express-validator");
 
 exports.getAllProducts = async (req, res) => {
   try {
-    const [products] = await db.query("SELECT * FROM products");
-    res.json(products);
+    console.log("--- getAllProducts FUNCTION CALLED - NOW WITH FILTERING! ---");
+    
+    const { category_id, price_min, price_max, brand } = req.query;
+    
+    console.log("Request filters:", { category_id, price_min, price_max, brand });
+
+    let query = "SELECT * FROM products";
+    const params = [];
+    const conditions = [];
+
+    if (brand && brand.trim() !== '') {
+      conditions.push("LOWER(brand) = LOWER(?)");
+      params.push(brand.trim());
+      console.log(`Brand filter applied: '${brand.trim()}'`);
+    }
+
+    if (category_id && !isNaN(parseInt(category_id))) {
+      conditions.push("category_id = ?");
+      params.push(parseInt(category_id));
+      console.log(`Category filter applied: ${category_id}`);
+    }
+
+    if (price_min && !isNaN(parseFloat(price_min))) {
+      conditions.push("price >= ?");
+      params.push(parseFloat(price_min));
+      console.log(`Min price filter applied: ${price_min}`);
+    }
+
+    if (price_max && !isNaN(parseFloat(price_max))) {
+      conditions.push("price <= ?");
+      params.push(parseFloat(price_max));
+      console.log(`Max price filter applied: ${price_max}`);
+    }
+
+    if (conditions.length > 0) {
+      query += " WHERE " + conditions.join(" AND ");
+    }
+
+    console.log("Final Query:", query);
+    console.log("Parameters:", params);
+
+    const [rows] = await db.query(query, params);
+    
+    console.log(`Query returned ${rows.length} products`);
+    
+    res.status(200).json(rows);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Error in getAllProducts:", error.message);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -35,37 +79,43 @@ exports.getProductById = async (req, res) => {
 };
 
 exports.getProductsByFilter = async (req, res) => {
+
   try {
-    const { category_id, price_min, price_max, brand } = req.body;
+    const { brand } = req.query; 
 
-    let query = "SELECT * FROM products WHERE 1=1";
+    console.log("Request filter (brand only):", { brand });
+
+    let query = "SELECT * FROM products";
     const params = [];
+    let conditions = [];
 
-    if (category_id) {
-      query += " AND category_id = ?";
-      params.push(category_id);
-    }
-    if (price_min) {
-      query += " AND price >= ?";
-      params.push(price_min);
-    }
-    if (price_max) {
-      query += " AND price <= ?";
-      params.push(price_max);
-    }
-    if (brand) {
-      query += " AND brand = ?";
-      params.push(brand);
+    if (brand && brand.trim() !== '') {
+      conditions.push("LOWER(brand) = LOWER(?)");
+      params.push(brand.trim());
+      console.log(`Brand filter applied: '${brand.trim()}'`);
     }
 
-    const [products] = await db.query(query, params);
-    res.json(products);
+    if (conditions.length > 0) {
+      query += " WHERE " + conditions.join(" AND ");
+    }
+
+    console.log("Final Query (brand only test):", query);
+    console.log("Parameters (brand only test):", params);
+
+    const [rows] = await db.query(query, params);
+
+    if (rows.length === 0) {
+      console.log("No products found with this brand.");
+    } else {
+      console.log(`Found ${rows.length} products.`);
+    }
+
+    res.status(200).json(rows);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+    console.error("Filter Error (brand only test):", error.message, error.stack);
+    res.status(500).json({ error: "Internal server error in brand test" });
   }
 };
-
 exports.addProductReview = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty())
