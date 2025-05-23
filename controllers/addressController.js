@@ -40,7 +40,7 @@ exports.getAddressesByUser = (req, res) => {
   const userId = req.user.id;
   console.log("Getting addresses for user:", userId);
 
-  const sql = "SELECT * FROM addresses WHERE user_id = ?";
+  const sql = "SELECT * FROM addresses WHERE user_id = userId";
   db.query(sql, [userId], (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(results);

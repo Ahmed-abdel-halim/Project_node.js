@@ -2,10 +2,10 @@ const mysql = require("mysql2");
 require("dotenv").config();
 
 const db = mysql.createConnection({
-  host: process.env.DB_HOST || "localhost",
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASS || "",
-  database: process.env.DB_NAME || "project",
+	host: 'sql12.freesqldatabase.com',
+	user: 'sql12780777',
+	password: 'gei2ZYAbBJ',
+	database: 'sql12780777',
 });
 
 db.connect((err) => {

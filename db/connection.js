@@ -1,10 +1,10 @@
 const mysql = require('mysql2/promise');
 
 const pool = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  password: '', // حط الباسورد حسب إعداداتك
-  database: 'project',
+	host: 'sql12.freesqldatabase.com',
+	user: 'sql12780777',
+	password: 'gei2ZYAbBJ',
+	database: 'sql12780777',
   waitForConnections: true,
   connectionLimit: 10,
 });
