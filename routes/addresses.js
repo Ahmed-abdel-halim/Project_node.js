@@ -1,14 +1,13 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const addressController = require('../controllers/addressController');
+const addressController = require("../controllers/addressController");
+const { authenticateToken } = require("../middleware/auth");
 
-
-router.get('/', (req, res) => {
-  res.json({ message: 'Addresses root route is working!' });
+router.get("/", (req, res) => {
+  res.json({ message: "Addresses root route is working!" });
 });
-router.post('/', addressController.createAddress);
-router.get('/:userId', addressController.getAddressesByUser);
-router.put('/:id', addressController.updateAddress);
-router.delete('/:id', addressController.deleteAddress);
-
+router.post("/", authenticateToken, addressController.createAddress);
+router.get("/", authenticateToken, addressController.getAddressesByUser);
+router.put("/:id", authenticateToken, addressController.updateAddress);
+router.delete("/:id", authenticateToken, addressController.deleteAddress);
 module.exports = router;

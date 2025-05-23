@@ -32,7 +32,7 @@ app.use("/wishlist", wishlistRoutes);
 const addressRoutes = require("./routes/addresses");
 const shippingRoutes = require("./routes/shipping");
 const paymentRoutes = require("./routes/payment");
-app.use("/addresses", addressRoutes);
+app.use("/address", addressRoutes);
 app.use("/shipping", shippingRoutes);
 app.use("/payment", paymentRoutes);
 
