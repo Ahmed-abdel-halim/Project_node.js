@@ -8,4 +8,4 @@ router.get("/", authenticateToken, wishlistController.getWishlist);
 router.delete("/:product_id", authenticateToken, wishlistController.deleteWishlistItem);
 router.get("/search", authenticateToken, wishlistController.searchWishlist);
 
-module.exports = router;
+module.exports = router; 

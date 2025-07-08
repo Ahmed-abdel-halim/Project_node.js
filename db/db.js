@@ -7,7 +7,15 @@ const db = mysql.createPool({
 	database: 'sql12780777',
   waitForConnections: true,
   connectionLimit: 10,    
-  queueLimit: 0       
+  queueLimit: 0 ,
+    typeCast: function (field, next) {
+    // Force convert DECIMAL and NEWDECIMAL to float
+    if (field.type === 'NEWDECIMAL' || field.type === 'DECIMAL') {
+      const val = field.string();
+      return val === null ? null : parseFloat(val);
+    }
+    return next();
+  }    
 });
 
 module.exports = db;

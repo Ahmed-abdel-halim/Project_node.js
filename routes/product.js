@@ -10,7 +10,6 @@ const { authenticateToken } = require('../middleware/auth');
 
 
 router.get('/products', getAllProducts);
-router.get('/products/filter', getProductsByFilter);
 router.get('/products/:id', getProductById);
 router.post('/products/:id/review', authenticateToken, addProductReview);
 

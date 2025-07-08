@@ -9,7 +9,11 @@ app.use((req, res, next) => {
   req.user = { id: 1, role: "admin" };
   next();
 });
-
+const cors = require('cors');
+app.use(cors({
+  origin: 'http://localhost:4200',
+  credentials: true,
+}));
 // ================== task 1 user =====================
 
 const authRoutes = require("./routes/auth");
@@ -25,6 +29,7 @@ app.use("/api", productRoutes);
 // =================task 3 user =========================
 const cartRoutes = require("./routes/cart");
 const wishlistRoutes = require("./routes/wishlist");
+
 app.use("/cart", cartRoutes);
 app.use("/wishlist", wishlistRoutes);
 
@@ -51,7 +56,9 @@ const managerRoutes = require('./routes/managerRoutes');
 const adminController =require("./routes/adminRoutes");
 const contactController = require("./routes/contactRotes")
 
-
+////////////////category/////////////////////////////
+const categoryRoutes = require('./routes/categoryRoutes');
+app.use('/api', categoryRoutes);
 // check roles
 // auth
 app.use("/website/auth",authRouters);

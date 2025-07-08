@@ -48,14 +48,35 @@ exports.register = async (req, res) => {
     }
 
     const password_hash = await bcrypt.hash(password, saltRounds);
-    await db.execute("INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)", [name, email, password_hash]);
+    const [result] = await db.execute("INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)", [name, email, password_hash]);
 
-    res.status(201).json({ message: "تم التسجيل بنجاح" });
+    // جلب المستخدم الجديد (يمكن استخدام result.insertId)
+    const userId = result.insertId;
+
+    // إنشاء التوكن JWT للمستخدم الجديد
+    const token = jwt.sign(
+      { id: userId, email },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '1h' }
+    );
+
+    // إرسال الرد مع التوكن وبيانات المستخدم
+    res.status(201).json({
+      token,
+      user: {
+        id: userId,
+        name,
+        email,
+        role: 'user' // أو القيمة الافتراضية التي تناسبك
+      }
+    });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "خطأ في الخادم" });
   }
 };
+
 
 // تسجيل الدخول
 exports.login = async (req, res) => {

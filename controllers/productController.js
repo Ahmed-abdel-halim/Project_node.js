@@ -3,7 +3,6 @@ const { validationResult } = require("express-validator");
 
 exports.getAllProducts = async (req, res) => {
   try {
-    console.log("--- getAllProducts FUNCTION CALLED - NOW WITH FILTERING! ---");
     
     const { category_id, price_min, price_max, brand } = req.query;
     
@@ -55,10 +54,11 @@ exports.getAllProducts = async (req, res) => {
   }
 };
 
+
 exports.getProductById = async (req, res) => {
   try {
     const { id } = req.params;
-    const [product] = await db.query("SELECT * FROM products WHERE id = ?", [
+    const [product] = await db.query("SELECT p.id,p.name,p.description,p.price,p.brand,p.stock_quantity,p.image_url,p.rating,c.name as category_name FROM products as p JOIN categories as c ON p.category_id = c.id WHERE p.id = ?", [
       id,
     ]);
 
@@ -78,44 +78,6 @@ exports.getProductById = async (req, res) => {
   }
 };
 
-exports.getProductsByFilter = async (req, res) => {
-
-  try {
-    const { brand } = req.query; 
-
-    console.log("Request filter (brand only):", { brand });
-
-    let query = "SELECT * FROM products";
-    const params = [];
-    let conditions = [];
-
-    if (brand && brand.trim() !== '') {
-      conditions.push("LOWER(brand) = LOWER(?)");
-      params.push(brand.trim());
-      console.log(`Brand filter applied: '${brand.trim()}'`);
-    }
-
-    if (conditions.length > 0) {
-      query += " WHERE " + conditions.join(" AND ");
-    }
-
-    console.log("Final Query (brand only test):", query);
-    console.log("Parameters (brand only test):", params);
-
-    const [rows] = await db.query(query, params);
-
-    if (rows.length === 0) {
-      console.log("No products found with this brand.");
-    } else {
-      console.log(`Found ${rows.length} products.`);
-    }
-
-    res.status(200).json(rows);
-  } catch (error) {
-    console.error("Filter Error (brand only test):", error.message, error.stack);
-    res.status(500).json({ error: "Internal server error in brand test" });
-  }
-};
 exports.addProductReview = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty())
